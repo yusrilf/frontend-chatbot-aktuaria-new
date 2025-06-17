@@ -152,52 +152,12 @@ st.markdown("""
 </script>
 """, unsafe_allow_html=True)
 
-# CSS tambahan untuk styling math yang lebih baik
-additional_math_css = """
-<style>
-    .math-display {
-        background: #f8fafc;
-        border: 1px solid #e2e8f0;
-        border-radius: 8px;
-        padding: 1.5rem;
-        margin: 1.5rem 0;
-        text-align: center;
-        font-size: 1.1em;
-        overflow-x: auto;
-    }
-    
-    .math-display .MathJax {
-        font-size: 1.2em !important;
-    }
-    
-    .assistant-message .MathJax {
-        color: #374151 !important;
-    }
-    
-    .assistant-message mjx-container {
-        margin: 0.5em 0;
-    }
-</style>
-"""
-# Tambahkan CSS ini setelah CSS utama
-st.markdown(additional_math_css, unsafe_allow_html=True)
-
 # Fungsi untuk memproses LaTeX
-# Fungsi untuk memproses LaTeX yang diperbaiki
 def process_latex(text):
     if not text:
         return text
-    
-    # Konversi LaTeX display math (yang dibungkus dengan [ ])
-    text = re.sub(r'\\\[(.*?)\\\]', r'$$\1$$', text, flags=re.DOTALL)
-    
-    # Konversi LaTeX inline math (yang dibungkus dengan \( \))
-    text = re.sub(r'\\\((.*?)\\\)', r'$\1$', text, flags=re.DOTALL)
-    
-    # Pastikan display math ditampilkan dengan benar
     text = re.sub(r'\$\$(.*?)\$\$', r'<div class="math-display">$$\1$$</div>', text, flags=re.DOTALL)
-    
-    # Biarkan inline math tetap dalam format $...$
+    text = re.sub(r'\$([^$]+?)\$', r'$\1$', text)
     return text
 
 # Judul aplikasi
@@ -351,7 +311,7 @@ def call_api(question, session_id, api_url):
 # Area chat
 st.markdown('<div class="chat-container">', unsafe_allow_html=True)
 
-# Display chat history - bagian yang diperbaiki
+# Display chat history
 if st.session_state.chat_history:
     for chat in st.session_state.chat_history:
         if chat["type"] == "user":
@@ -371,17 +331,6 @@ if st.session_state.chat_history:
                 {processed_content}
                 <div class="message-time">{chat['timestamp']}</div>
             </div>
-            """, unsafe_allow_html=True)
-            
-            # Render MathJax setelah konten ditampilkan
-            st.markdown("""
-            <script>
-                setTimeout(function() {
-                    if (window.MathJax) {
-                        MathJax.typesetPromise();
-                    }
-                }, 200);
-            </script>
             """, unsafe_allow_html=True)
             
             # Confidence
@@ -531,49 +480,14 @@ st.markdown(f"""
 """, unsafe_allow_html=True)
 
 # Auto-scroll and MathJax render
-# Auto-scroll dan MathJax render yang diperbaiki
 if st.session_state.chat_history:
     st.markdown("""
     <script>
-        // Fungsi untuk render MathJax
-        function renderMath() {
-            if (window.MathJax && window.MathJax.typesetPromise) {
-                window.MathJax.typesetPromise().then(function() {
-                    console.log('MathJax rendered successfully');
-                }).catch(function(err) {
-                    console.log('MathJax rendering error:', err);
-                });
-            }
-        }
-        
-        // Delay untuk memastikan DOM sudah siap
         setTimeout(function() {
-            renderMath();
-            // Auto scroll ke bawah
-            window.scrollTo({
-                top: document.body.scrollHeight,
-                behavior: 'smooth'
-            });
-        }, 300);
-        
-        // Observer untuk element baru
-        if (window.MutationObserver) {
-            const observer = new MutationObserver(function(mutations) {
-                let shouldRender = false;
-                mutations.forEach(function(mutation) {
-                    if (mutation.addedNodes.length > 0) {
-                        shouldRender = true;
-                    }
-                });
-                if (shouldRender) {
-                    setTimeout(renderMath, 100);
-                }
-            });
-            
-            observer.observe(document.body, {
-                childList: true,
-                subtree: true
-            });
-        }
+            window.scrollTo(0, document.body.scrollHeight);
+            if (window.MathJax) {
+                MathJax.typesetPromise();
+            }
+        }, 100);
     </script>
     """, unsafe_allow_html=True)
